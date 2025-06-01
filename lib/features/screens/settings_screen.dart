@@ -1,5 +1,4 @@
 import 'package:cost_snap/models/item.dart';
-
 import 'package:cost_snap/theme/theme.dart';
 import 'package:cost_snap/utils/const.dart';
 import 'package:cost_snap/utils/storage.dart';
@@ -10,9 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
-
 import '../../service/exchange_rate_service.dart';
-import '../../service/notification_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   final List<Item> items;
@@ -32,15 +29,12 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final ExchangeRateService _exchangeRateService = ExchangeRateService();
-  final NotificationService _notificationService = NotificationService();
-  bool _notificationsEnabled = true;
 
   @override
   void initState() {
     super.initState();
     _loadCurrency();
     _fetchExchangeRates();
-    _loadNotificationPreference();
   }
 
   Future<void> _loadCurrency() async {
@@ -72,30 +66,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       Get.snackbar('Error', 'Failed to fetch exchange rates',
           backgroundColor: Colors.red.withOpacity(0.8));
-    }
-  }
-
-  Future<void> _loadNotificationPreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
-    });
-  }
-
-  Future<void> _updateNotificationPreference(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notifications_enabled', value);
-    setState(() {
-      _notificationsEnabled = value;
-    });
-    if (value) {
-      await _notificationService.scheduleDailyNotification();
-      Get.snackbar('Notifications Enabled', 'You’ll get fun daily reminders!',
-          backgroundColor: AppColors.accent.withOpacity(0.8));
-    } else {
-      await _notificationService.disableNotifications();
-      Get.snackbar('Notifications Disabled', 'You can enable them anytime!',
-          backgroundColor: AppColors.accent.withOpacity(0.8));
     }
   }
 
@@ -191,18 +161,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               onSelected: (value) => _saveCurrency(value!),
             ),
-          ),
-          SwitchListTile(
-            title: Text('Fun Notifications', style: csTextTheme().bodyLarge),
-            subtitle: Text(
-              'Get daily reminders to snap prices',
-              style: csTextTheme().bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-            ),
-            value: _notificationsEnabled,
-            activeColor: AppColors.accent,
-            onChanged: _updateNotificationPreference,
           ),
           ListTile(
             title: Text('Export Data', style: csTextTheme().bodyLarge),

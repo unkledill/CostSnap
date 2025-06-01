@@ -1,21 +1,27 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
-//
+import 'package:cost_snap/features/screens/loading_screen.dart';
+import 'package:cost_snap/features/screens/main_screen.dart';
 import 'package:cost_snap/theme/theme.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../utils/const.dart';
-import 'notification_prompt_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
-  Future<void> _completeOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('has_seen_onboarding', true);
-    Get.off(() => const NotificationPromptScreen());
+  void _startApp() async {
+    Get.to(
+      const LoadingScreen(),
+      transition: Transition.fadeIn,
+      duration: AppConstants.animationDuration,
+    );
+    await Future.delayed(AppConstants.loadingDelay);
+    Get.offAll(
+      const MainScreen(),
+      transition: Transition.fadeIn,
+    );
   }
 
   @override
@@ -49,7 +55,7 @@ class OnboardingScreen extends StatelessWidget {
               DefaultTextStyle(
                 style: csTextTheme()
                     .displayLarge!
-                    .copyWith(fontSize: screenWidth * 0.2),
+                    .copyWith(fontSize: screenWidth * 0.1),
                 child: AnimatedTextKit(
                   isRepeatingAnimation: false,
                   totalRepeatCount: 1,
@@ -65,7 +71,7 @@ class OnboardingScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppConstants.largeSpacing),
               ElevatedButton(
-                onPressed: _completeOnboarding,
+                onPressed: _startApp,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   minimumSize: Size(double.infinity, screenWidth * 0.15),
