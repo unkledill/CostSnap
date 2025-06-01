@@ -7,12 +7,22 @@ class LoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      backgroundColor: AppColors.primary,
-      body: Center(
-        child: SpinKitDancingSquare(
-          color: AppColors.background,
-          size: 100.0,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: SpinKitDancingSquare(
+            color: AppColors.background,
+            size: screenWidth * 0.2,
+          ),
         ),
       ),
     );

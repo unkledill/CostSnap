@@ -1,20 +1,22 @@
 class Validators {
   static String? price(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter a price';
+      return 'Enter a price';
     }
-    // Remove commas for validation
     final cleanValue = value.replaceAll(',', '');
     final number = double.tryParse(cleanValue);
     if (number == null || number <= 0) {
-      return 'Please enter a valid positive number';
+      return 'Enter a valid positive price';
     }
-    return null; // Valid
+    if (number > 1000000000) {
+      return 'Price is too large';
+    }
+    return null;
   }
 
   static String? required(String? value, String fieldName) {
     if (value == null || value.isEmpty) {
-      return 'Please enter a $fieldName';
+      return 'Enter the $fieldName';
     }
     return null;
   }

@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'package:cost_snap/utils/number_formater.dart';
+import 'package:cost_snap/utils/formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../theme/theme.dart';
-import '../../utils/validator.dart';
+import '../../utils/validators.dart';
 
 class ItemForm extends StatefulWidget {
   final Function(

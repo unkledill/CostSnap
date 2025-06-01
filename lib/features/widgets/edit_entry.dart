@@ -1,9 +1,14 @@
-import 'package:cost_snap/theme/theme.dart';
-import 'package:cost_snap/utils/validator.dart';
+// import 'package:cost_snap/theme/theme.dart';
+
+import 'package:cost_snap/utils/formatters.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+
+import '../../utils/const.dart';
+import '../../utils/validators.dart';
 
 class EditEntryForm extends StatefulWidget {
   final Function(double price, String location) onSubmit;
@@ -30,8 +35,7 @@ class _EditEntryFormState extends State<EditEntryForm> {
   @override
   void initState() {
     super.initState();
-    _priceController.text =
-        _numberFormat.format(widget.initialPrice); // Pre-fill with commas
+    _priceController.text = _numberFormat.format(widget.initialPrice);
     _location = widget.initialLocation;
   }
 
@@ -43,100 +47,52 @@ class _EditEntryFormState extends State<EditEntryForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              showCursor: true,
-              cursorWidth: 5,
-              cursorColor: AppColors.textPrimary,
-              controller:
-                  _priceController, // Use controller instead of initialValue
-              decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.black12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.textPrimary),
-                ),
-                border: OutlineInputBorder(),
-                hintText: 'Price', // Added hint for clarity
-                hintStyle: TextStyle(color: Colors.black45),
-              ),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly, // Only numbers
-                _NumberTextInputFormatter(), // Add commas as you type
-              ],
-              validator: Validators.price,
-              onSaved: (value) => _priceController.text = value!,
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextFormField(
+            controller: _priceController,
+            decoration: const InputDecoration(
+              prefix: Text('N'),
+              hintText: 'Price',
             ),
-            SizedBox(height: 16),
-            TextFormField(
-              showCursor: true,
-              cursorWidth: 5,
-              cursorColor: AppColors.textPrimary,
-              initialValue: widget.initialLocation,
-              decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.black12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.textPrimary),
-                ),
-                border: OutlineInputBorder(),
-                hintText: 'Location',
-                hintStyle: TextStyle(color: Colors.black45),
-              ),
-              validator: (value) => Validators.required(value, 'location'),
-              onSaved: (value) => _location = value!,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              NumberTextInputFormatter(),
+            ],
+            validator: Validators.price,
+            cursorWidth: screenWidth * 0.005,
+          ),
+          const SizedBox(height: AppConstants.mediumSpacing),
+          TextFormField(
+            initialValue: widget.initialLocation,
+            decoration: const InputDecoration(
+              hintText: 'Location',
             ),
-            SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-                  final price =
-                      double.parse(_priceController.text.replaceAll(',', ''));
-                  widget.onSubmit(price, _location);
-                  Get.back();
-                }
-              },
-              child: Text('Save Changes'),
-            ),
-          ],
-        ),
+            validator: (value) => Validators.required(value, 'location'),
+            onSaved: (value) => _location = value!,
+            cursorWidth: screenWidth * 0.005,
+          ),
+          const SizedBox(height: AppConstants.largeSpacing),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                _formKey.currentState!.save();
+                final price =
+                    double.parse(_priceController.text.replaceAll(',', ''));
+                widget.onSubmit(price, _location);
+                Get.back();
+              }
+            },
+            child: const Text('Save Changes'),
+          ),
+        ],
       ),
-    );
-  }
-}
-
-// Custom formatter to add commas as you type
-class _NumberTextInputFormatter extends TextInputFormatter {
-  final NumberFormat _formatter = NumberFormat.decimalPattern('en_US');
-
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    if (newValue.text.isEmpty) {
-      return newValue;
-    }
-    final number = double.tryParse(newValue.text.replaceAll(',', ''));
-    if (number == null) {
-      return oldValue; // Invalid input, revert to old value
-    }
-    final formatted = _formatter.format(number);
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

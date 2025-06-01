@@ -1,9 +1,10 @@
-import 'package:cost_snap/theme/theme.dart';
-import 'package:cost_snap/utils/validator.dart';
+import 'package:cost_snap/utils/formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import '../../utils/const.dart';
+import '../../utils/validators.dart';
 
 class UpdateEntryForm extends StatefulWidget {
   final Function(double price, String location) onSubmit;
@@ -32,7 +33,7 @@ class _UpdateEntryFormState extends State<UpdateEntryForm> {
     super.initState();
     _priceController.text = widget.initialPrice != null
         ? _numberFormat.format(widget.initialPrice!)
-        : ''; // Format initial price with commas
+        : '';
     _location = widget.initialLocation ?? '';
   }
 
@@ -44,60 +45,38 @@ class _UpdateEntryFormState extends State<UpdateEntryForm> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextFormField(
-            showCursor: true,
-            cursorWidth: 5,
-            cursorColor: AppColors.textPrimary,
             controller: _priceController,
-            decoration: InputDecoration(
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.black12),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: AppColors.textPrimary),
-              ),
+            decoration: const InputDecoration(
+              prefix: Text('N'),
               hintText: 'New Price',
-              hintStyle: TextStyle(color: Colors.black45),
-              border: OutlineInputBorder(),
             ),
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly, // Only numbers
-              _NumberTextInputFormatter(), // Add commas as you type
+              FilteringTextInputFormatter.digitsOnly,
+              NumberTextInputFormatter(),
             ],
             validator: Validators.price,
-            onSaved: (value) => _priceController.text = value!,
+            cursorWidth: screenWidth * 0.005,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: AppConstants.mediumSpacing),
           TextFormField(
-            showCursor: true,
-            cursorWidth: 5,
-            cursorColor: AppColors.textPrimary,
             initialValue: widget.initialLocation,
-            decoration: InputDecoration(
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.black12),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: AppColors.textPrimary),
-              ),
+            decoration: const InputDecoration(
               hintText: 'Location',
-              hintStyle: TextStyle(color: Colors.black45),
-              border: OutlineInputBorder(),
             ),
             validator: (value) => Validators.required(value, 'location'),
             onSaved: (value) => _location = value!,
+            cursorWidth: screenWidth * 0.005,
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: AppConstants.largeSpacing),
           ElevatedButton(
             onPressed: () {
               if (_formKey.currentState!.validate()) {
@@ -109,35 +88,10 @@ class _UpdateEntryFormState extends State<UpdateEntryForm> {
               }
             },
             child: Text(
-              widget.initialPrice == null
-                  ? 'Add Entry'
-                  : 'Save Changes', // Fixed button text logic
-            ),
+                widget.initialPrice == null ? 'Add Entry' : 'Save Changes'),
           ),
         ],
       ),
-    );
-  }
-}
-
-// Custom formatter to add commas as you type
-class _NumberTextInputFormatter extends TextInputFormatter {
-  final NumberFormat _formatter = NumberFormat.decimalPattern('en_US');
-
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    if (newValue.text.isEmpty) {
-      return newValue;
-    }
-    final number = double.tryParse(newValue.text.replaceAll(',', ''));
-    if (number == null) {
-      return oldValue; // Invalid input, revert to old value
-    }
-    final formatted = _formatter.format(number);
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

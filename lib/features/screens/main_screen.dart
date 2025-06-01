@@ -1,17 +1,20 @@
 import 'dart:io';
+import 'package:cost_snap/features/screens/add_item_screen.dart';
+import 'package:cost_snap/features/screens/home_screen.dart';
+import 'package:cost_snap/features/screens/settings_screen.dart';
+import 'package:cost_snap/models/item.dart';
 import 'package:cost_snap/theme/theme.dart';
+import 'package:cost_snap/utils/const.dart';
+import 'package:cost_snap/utils/storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../models/item.dart';
-import 'add_item_screen.dart';
-import 'home_screen.dart';
-import 'settings_screen.dart';
-import '../../utils/storage.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final Function(ThemeMode)? onThemeChanged;
+
+  const MainScreen({super.key, this.onThemeChanged});
 
   @override
   _MainScreenState createState() => _MainScreenState();
@@ -20,7 +23,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   List<Item> _items = [];
-  bool _showInUSD = false;
+  String _currency = 'USD';
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -38,13 +41,14 @@ class _MainScreenState extends State<MainScreen> {
     setState(() => _items = items);
   }
 
-  void _updateCurrency(bool showInUSD) {
-    setState(() => _showInUSD = showInUSD);
+  void _updateCurrency(String currency) {
+    setState(() => _currency = currency);
   }
 
   Future<void> _addItem() async {
     final XFile? pickedFile =
         await _picker.pickImage(source: ImageSource.camera);
+    if (pickedFile == null) return;
     Get.to(
       () => AddItemScreen(
         onItemAdded: (name, price, location, photo, tag) async {
@@ -54,17 +58,18 @@ class _MainScreenState extends State<MainScreen> {
             name: name,
             photoPath: photoPath,
             priceHistory: [
-              PriceEntry(price: price, location: location, date: DateTime.now())
+              PriceEntry(
+                  price: price, location: location, date: DateTime.now()),
             ],
             tag: tag,
           );
           setState(() => _items.insert(0, newItem));
           await Storage.saveItems(_items);
         },
-        initialPhoto: pickedFile != null ? File(pickedFile.path) : null,
+        initialPhoto: File(pickedFile.path),
       ),
       transition: Transition.rightToLeft,
-      duration: Duration(milliseconds: 350),
+      duration: AppConstants.animationDuration,
     );
   }
 
@@ -74,7 +79,7 @@ class _MainScreenState extends State<MainScreen> {
       HomeScreen(
         items: _items,
         onItemsChanged: _updateItems,
-        showInUSD: _showInUSD,
+        currency: _currency,
         onCurrencyChanged: _updateCurrency,
       ),
       SettingsScreen(
@@ -85,32 +90,26 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
+      body: screens[_currentIndex],
       bottomNavigationBar: BottomAppBar(
-        color: Theme.of(context).bottomAppBarTheme.color,
         elevation: 8,
         shape: CircularNotchedRectangle(),
         notchMargin: 8.0,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _navBar(
+            _buildNavItem(
               label: 'Home',
               activeIcon: 'assets/images/a.home.png',
               inactiveIcon: 'assets/images/in.home.png',
               index: 0,
-              onTap: () => setState(() => _currentIndex = 0),
             ),
-            SizedBox(width: 48),
-            _navBar(
+            const SizedBox(width: 48),
+            _buildNavItem(
               label: 'Settings',
               activeIcon: 'assets/images/a.settings.png',
               inactiveIcon: 'assets/images/in.settings.png',
               index: 1,
-              onTap: () => setState(() => _currentIndex = 1),
             ),
           ],
         ),
@@ -126,30 +125,30 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _navBar({
+  Widget _buildNavItem({
     required String label,
     required String activeIcon,
     required String inactiveIcon,
     required int index,
-    Function()? onTap,
   }) {
+    final isActive = _currentIndex == index;
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => setState(() => _currentIndex = index),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Image.asset(
-            height: 20.0,
-            width: 20.0,
-            _currentIndex == index ? activeIcon : inactiveIcon,
-            color: _currentIndex == index
+            isActive ? activeIcon : inactiveIcon,
+            height: MediaQuery.of(context).size.width * 0.05,
+            width: MediaQuery.of(context).size.width * 0.05,
+            color: isActive
                 ? AppColors.primary
                 : Theme.of(context).textTheme.bodyMedium?.color,
           ),
           Text(
             label,
             style: TextStyle(
-              color: _currentIndex == index
+              color: isActive
                   ? AppColors.primary
                   : Theme.of(context).textTheme.bodyMedium?.color,
             ),

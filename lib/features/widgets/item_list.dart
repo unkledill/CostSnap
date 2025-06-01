@@ -1,41 +1,40 @@
 import 'dart:io';
+import 'package:cost_snap/models/item.dart';
 import 'package:cost_snap/theme/theme.dart';
-// import 'package:cost_snap/utils/time_utils.dart';
+import 'package:cost_snap/utils/const.dart';
+import 'package:cost_snap/utils/time_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../models/item.dart';
 
 class ItemList extends StatelessWidget {
   final List<Item> items;
   final Function(Item)? onItemTap;
   final Function(Item)? onDelete;
-  final bool showInUSD;
-  static const double _exchangeRate = 1539.42; // 1 USD = 1539.42 NGN
+  final String currency;
 
   const ItemList({
     super.key,
     required this.items,
     this.onItemTap,
     this.onDelete,
-    required this.showInUSD,
+    required this.currency,
   });
 
   String _formatPrice(Item item) {
     final latestPrice = item.priceHistory.last.price;
-    final NumberFormat formatter = NumberFormat.decimalPattern('en_US');
-    if (item.priceHistory.length > 1) {
-      return 'Multiple prices';
-    }
-    if (showInUSD) {
-      final usdPrice = latestPrice / _exchangeRate;
-      return '\$${formatter.format(usdPrice)}'; // e.g., "$5,194" instead of "$5194.05"
-    }
-    return 'N${formatter.format(latestPrice)}'; // e.g., "₦300,000" instead of "₦300000.00"
+    final formatter = NumberFormat.decimalPattern('en_US');
+    final rate = AppConstants.exchangeRates[currency] ?? 1.0;
+    final convertedPrice = latestPrice * rate;
+    return '${currency == 'USD' ? '\$' : currency == 'EUR' ? '€' : currency == 'GBP' ? '£' : 'N'}${formatter.format(convertedPrice)}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.only(top: AppConstants.mediumSpacing),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
@@ -49,71 +48,95 @@ class ItemList extends StatelessWidget {
               color: Colors.red,
             ),
             alignment: Alignment.centerRight,
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.delete, color: Colors.white),
+            padding: const EdgeInsets.only(right: AppConstants.mediumSpacing),
+            child: const Icon(Icons.delete, color: Colors.white),
           ),
-          onDismissed: (direction) {
-            if (onDelete != null) onDelete!(item);
-          },
+          onDismissed: (_) => onDelete?.call(item),
           child: GestureDetector(
-            onTap: onItemTap != null ? () => onItemTap!(item) : null,
+            onTap: () => onItemTap?.call(item),
             child: Card(
+              color: Theme.of(context).colorScheme.onSurface,
               shadowColor: const Color.fromARGB(20, 33, 33, 33),
-              elevation: 10,
-              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+              elevation: 8,
+              margin: const EdgeInsets.symmetric(
+                vertical: AppConstants.smallSpacing,
+                horizontal: AppConstants.mediumSpacing,
+              ),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Column(
                 children: [
-                  Stack(children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        File(item.photoPath),
-                        width: double.infinity,
-                        height: 150,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 15,
-                      left: 20,
-                      child: Container(
-                        padding: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(8)),
-                        child: Text(
-                          item.tag,
-                          style: TextStyle(
-                              color: AppColors.background,
-                              fontWeight: FontWeight.bold),
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          File(item.photoPath),
+                          width: double.infinity,
+                          height: screenWidth * 0.4,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                    ),
-                  ]),
+                      Positioned(
+                        bottom: AppConstants.mediumSpacing,
+                        left: AppConstants.mediumSpacing,
+                        child: Container(
+                          padding:
+                              const EdgeInsets.all(AppConstants.smallSpacing),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            item.tag,
+                            style: csTextTheme().bodyLarge?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   ListTile(
                     title: Text(
                       item.name,
-                      style: csTextTheme().displayMedium,
+                      style: csTextTheme().titleLarge,
                     ),
                     subtitle: RichText(
                       text: TextSpan(
-                        style: Theme.of(context).textTheme.bodyLarge,
-                        children: [
-                          TextSpan(
-                            text: '${latest.location} - ',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          TextSpan(
-                            text: _formatPrice(item),
-                            style: TextStyle(
-                                color: AppColors.accent,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          if (item.priceHistory.length == 1)
-                            TextSpan(text: '  '),
-                        ],
+                        style: csTextTheme().bodyLarge,
+                        children: item.priceHistory.length > 1
+                            ? [
+                                TextSpan(
+                                  text: 'Multiple Entry',
+                                  style: TextStyle(
+                                    color: AppColors.accent,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: ' ${getRelativeTime(latest.date)}',
+                                ),
+                              ]
+                            : [
+                                TextSpan(
+                                  text: '${latest.location} - ',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                TextSpan(
+                                  text: _formatPrice(item),
+                                  style: const TextStyle(
+                                    color: AppColors.accent,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: ' ${getRelativeTime(latest.date)}',
+                                ),
+                              ],
                       ),
                     ),
                   ),
@@ -126,6 +149,3 @@ class ItemList extends StatelessWidget {
     );
   }
 }
-
-
-  // ${getRelativeTime(latest.date)}

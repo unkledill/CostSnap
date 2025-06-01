@@ -1,24 +1,24 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cost_snap/models/item.dart';
+import 'package:cost_snap/theme/theme.dart';
+import 'package:cost_snap/utils/const.dart';
+import 'package:cost_snap/utils/storage.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/item.dart';
-import '../../theme/theme.dart';
-import '../../utils/storage.dart';
 import '../widgets/item_list.dart';
 import 'details_screen.dart';
-import 'package:get/get.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<Item> items;
   final Function(List<Item>) onItemsChanged;
-  final bool showInUSD;
-  final Function(bool) onCurrencyChanged;
+  final String currency;
+  final Function(String) onCurrencyChanged;
 
   const HomeScreen({
     super.key,
     required this.items,
     required this.onItemsChanged,
-    required this.showInUSD,
+    required this.currency,
     required this.onCurrencyChanged,
   });
 
@@ -28,18 +28,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? _selectedTag;
-  // static const double _exchangeRate = 1600.0;
 
   @override
   void initState() {
     super.initState();
-    _loadItems();
     _loadFilter();
-  }
-
-  Future<void> _loadItems() async {
-    final loadedItems = await Storage.loadItems();
-    widget.onItemsChanged(loadedItems);
   }
 
   Future<void> _loadFilter() async {
@@ -67,25 +60,26 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showFilterBottomSheet() {
     Get.bottomSheet(
       DraggableScrollableSheet(
-        initialChildSize: 0.75,
+        initialChildSize: 0.5,
         minChildSize: 0.25,
         maxChildSize: 0.75,
         builder: (context, scrollController) => Container(
           decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            color: Theme.of(context).bottomSheetTheme.backgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           ),
           child: SingleChildScrollView(
             controller: scrollController,
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppConstants.mediumSpacing),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     width: 40,
                     height: 4,
-                    margin: EdgeInsets.only(bottom: 8), // Fix to 'bottom' later
+                    margin: const EdgeInsets.only(
+                        bottom: AppConstants.smallSpacing),
                     decoration: BoxDecoration(
                       color: Colors.grey[400],
                       borderRadius: BorderRadius.circular(2),
@@ -97,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         .titleLarge
                         ?.copyWith(color: AppColors.primary),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: AppConstants.mediumSpacing),
                   ListTile(
                     title: Text(
                       'All',
@@ -105,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: _selectedTag == null
                             ? FontWeight.bold
                             : FontWeight.normal,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                     onTap: () {
@@ -120,6 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontWeight: _selectedTag == tag
                               ? FontWeight.bold
                               : FontWeight.normal,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       ),
                       onTap: () {
@@ -147,13 +143,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 170, left: 70, right: 70),
-      child: Center(
+    return Center(
+      child: FractionallySizedBox(
+        widthFactor: 0.8,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/images/Empty_states_homepage.png', height: 200),
-            SizedBox(height: 24),
+            const Icon(
+              Icons.add_photo_alternate_rounded,
+              size: 100,
+              color: AppColors.textSecondary,
+            ),
+            const SizedBox(height: AppConstants.largeSpacing),
             Text(
               _selectedTag == null
                   ? 'No items yet!'
@@ -163,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   .titleLarge
                   ?.copyWith(color: AppColors.textSecondary),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: AppConstants.smallSpacing),
             Text(
               'Snap a product to start tracking prices.',
               style: Theme.of(context)
@@ -186,49 +187,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 60,
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        title: Text('${_getGreeting()} 😊',
-            style: TextStyle(color: AppColors.textPrimary)),
+        title: Text('${_getGreeting()} 😊'),
         actions: [
           IconButton(
-            icon: Icon(widget.showInUSD
-                ? CupertinoIcons.money_dollar_circle_fill
-                : CupertinoIcons.money_dollar_circle),
-            onPressed: () => widget.onCurrencyChanged(!widget.showInUSD),
-            tooltip: widget.showInUSD ? 'Switch to Naira' : 'Switch to USD',
-          ),
-          IconButton(
-            icon: Icon(Icons.filter_list_rounded),
+            icon: const Icon(Icons.filter_list_rounded),
             onPressed: _showFilterBottomSheet,
           ),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: filteredItems.isEmpty
-                ? _buildEmptyState()
-                : ItemList(
-                    items: filteredItems,
-                    onItemTap: (item) async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DetailsScreen(
-                              item: item, showInUSD: widget.showInUSD),
-                        ),
-                      );
-                      await _loadItems();
-                    },
-                    onDelete: _deleteItem,
-                    showInUSD: widget.showInUSD,
+      body: filteredItems.isEmpty
+          ? _buildEmptyState()
+          : ItemList(
+              items: filteredItems,
+              onItemTap: (item) async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        DetailsScreen(item: item, currency: widget.currency),
                   ),
-          ),
-        ],
-      ),
+                );
+                widget.onItemsChanged(await Storage.loadItems());
+              },
+              onDelete: _deleteItem,
+              currency: widget.currency,
+            ),
     );
   }
 }

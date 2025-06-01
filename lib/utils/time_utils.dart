@@ -14,10 +14,10 @@ String getRelativeTime(DateTime date) {
     final days = difference.inDays;
     return '$days day${days == 1 ? '' : 's'} ago';
   } else if (difference.inDays < 365) {
-    final months = (difference.inDays / 30).floor();
+    final months = difference.inDays ~/ 30;
     return '$months month${months == 1 ? '' : 's'} ago';
   } else {
-    final years = (difference.inDays / 365).floor();
+    final years = difference.inDays ~/ 365;
     return '$years year${years == 1 ? '' : 's'} ago';
   }
 }

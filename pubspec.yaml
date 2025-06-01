@@ -10,21 +10,29 @@ environment:
 
 dependencies:
   animated_text_kit: ^4.2.3
+  archive: ^4.0.7
+  csv: ^6.0.0
   cupertino_icons: ^1.0.8
+  device_info_plus: ^11.4.0
+  file_picker: ^10.1.2
   flutter:
     sdk: flutter
   flutter_animate: ^4.5.2
   flutter_launcher_icons: ^0.14.3
+  flutter_local_notifications: ^19.2.1
+  flutter_timezone: ^2.0.0
   flutter_native_splash: ^2.4.5
   flutter_spinkit: ^5.2.1
   gap: ^3.0.1
   get: ^4.6.6
   google_fonts: ^6.2.1
+  http: ^1.4.0
   image_picker: ^1.1.2
   intl: ^0.20.2
   ionicons: ^0.2.2
   lottie: ^3.3.1
   path_provider: ^2.1.5
+  permission_handler: ^11.3.1
   share_plus: ^10.1.4
   shared_preferences: ^2.5.2
 
