@@ -18,37 +18,37 @@ TextTheme csTextTheme() {
     displaySmall: GoogleFonts.poppins(
       fontSize: 16,
       fontWeight: FontWeight.bold,
-      color: AppColors.textPrimary,
+      // Remove hardcoded color
     ),
     displayLarge: GoogleFonts.poppins(
       fontSize: 32,
       fontWeight: FontWeight.bold,
-      color: AppColors.textPrimary,
+      // Remove hardcoded color
     ),
     displayMedium: GoogleFonts.poppins(
       fontSize: 24,
       fontWeight: FontWeight.bold,
-      color: AppColors.textPrimary,
+      // Remove hardcoded color
     ),
     titleLarge: GoogleFonts.poppins(
       fontSize: 20,
       fontWeight: FontWeight.w600,
-      color: AppColors.textPrimary,
+      // Remove hardcoded color
     ),
     bodyLarge: GoogleFonts.poppins(
       fontSize: 16,
       fontWeight: FontWeight.normal,
-      color: AppColors.textPrimary,
+      // Remove hardcoded color
     ),
     bodyMedium: GoogleFonts.poppins(
       fontSize: 14,
       fontWeight: FontWeight.normal,
-      color: AppColors.textSecondary,
+      // Remove hardcoded color
     ),
     labelLarge: GoogleFonts.poppins(
       fontSize: 16,
       fontWeight: FontWeight.w500,
-      color: AppColors.textPrimary,
+      // Remove hardcoded color
     ),
   );
 }
@@ -61,17 +61,18 @@ ThemeData lightTheme = ThemeData(
     primary: AppColors.primary,
     secondary: AppColors.accent,
     onPrimary: Colors.white,
-    onSecondary: Colors.black45,
+    onSecondary: Colors.white, // Changed for better contrast
     surface: AppColors.background,
-    onSurface: Colors.white,
+    onSurface: AppColors.textPrimary, // Primary text color for light mode
     outline: Colors.black45,
-    primaryContainer:
-        Color(0xFF757575), // AppColors.textSecondary.withOpacity(0.1),
+    primaryContainer: Color(0xFF757575), // AppColors.textSecondary
   ),
   textTheme: csTextTheme(),
   appBarTheme: AppBarTheme(
     backgroundColor: AppColors.background,
-    titleTextStyle: csTextTheme().titleLarge,
+    titleTextStyle: csTextTheme().titleLarge?.copyWith(
+          color: AppColors.textPrimary, // Explicit for app bar title
+        ),
   ),
   floatingActionButtonTheme: const FloatingActionButtonThemeData(
     backgroundColor: AppColors.accent,
@@ -106,6 +107,7 @@ ThemeData lightTheme = ThemeData(
   ),
   listTileTheme: const ListTileThemeData(
     iconColor: AppColors.textPrimary,
+    textColor: AppColors.textPrimary, // Added for ListTile text
   ),
 );
 
@@ -117,22 +119,18 @@ ThemeData darkTheme = ThemeData(
     primary: AppColors.primary,
     secondary: AppColors.accent,
     onPrimary: Colors.white,
-    onSecondary: AppColors.textSecondary,
+    onSecondary: Colors.white, // Changed for better contrast
     surface: Color(0xFF212121),
-    onSurface: Colors.grey,
-    primaryContainer: Colors.grey,
+    onSurface: AppColors.background, // Light gray text for dark mode
+    primaryContainer: Color(0xFF424242), // Slightly lighter gray
     outline: AppColors.textSecondary,
   ),
-  textTheme: csTextTheme().apply(
-    bodyColor: AppColors.background,
-    displayColor: AppColors.background,
-  ),
-  bottomSheetTheme: const BottomSheetThemeData(
-    backgroundColor: Colors.grey,
-  ),
+  textTheme: csTextTheme(),
   appBarTheme: AppBarTheme(
     backgroundColor: const Color(0xFF121212),
-    titleTextStyle: csTextTheme().titleLarge?.copyWith(color: Colors.white),
+    titleTextStyle: csTextTheme().titleLarge?.copyWith(
+          color: AppColors.background, // Light gray for app bar title
+        ),
   ),
   floatingActionButtonTheme: const FloatingActionButtonThemeData(
     backgroundColor: AppColors.accent,
@@ -145,8 +143,17 @@ ThemeData darkTheme = ThemeData(
       textStyle: csTextTheme().bodyLarge?.copyWith(fontWeight: FontWeight.w500),
     ),
   ),
-  listTileTheme: const ListTileThemeData(
-    iconColor: AppColors.background,
+  bottomSheetTheme: const BottomSheetThemeData(
+    backgroundColor: Color(0xFF424242), // Adjusted for dark mode
+  ),
+  dropdownMenuTheme: DropdownMenuThemeData(
+    menuStyle: MenuStyle(
+      backgroundColor: const WidgetStatePropertyAll(Color(0xFF424242)),
+      elevation: const WidgetStatePropertyAll(4),
+      shape: WidgetStatePropertyAll(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    ),
   ),
   iconButtonTheme: IconButtonThemeData(
     style: ButtonStyle(
@@ -155,5 +162,9 @@ ThemeData darkTheme = ThemeData(
   ),
   iconTheme: const IconThemeData(
     color: AppColors.background,
+  ),
+  listTileTheme: const ListTileThemeData(
+    iconColor: AppColors.background,
+    textColor: AppColors.background, // Added for ListTile text
   ),
 );

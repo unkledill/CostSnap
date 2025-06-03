@@ -1,33 +1,26 @@
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:cost_snap/features/screens/loading_screen.dart';
 import 'package:cost_snap/features/screens/main_screen.dart';
 import 'package:cost_snap/theme/theme.dart';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../utils/const.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:gap/gap.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
   void _startApp() async {
-    Get.to(
-      const LoadingScreen(),
-      transition: Transition.fadeIn,
-      duration: AppConstants.animationDuration,
-    );
-    await Future.delayed(AppConstants.loadingDelay);
+    Get.to(() => LoadingScreen(),
+        transition: Transition.fadeIn, duration: Duration(milliseconds: 500));
+    await Future.delayed(Duration(milliseconds: 1500));
     Get.offAll(
-      const MainScreen(),
+      () => MainScreen(),
       transition: Transition.fadeIn,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -36,27 +29,30 @@ class OnboardingScreen extends StatelessWidget {
         centerTitle: true,
         title: Image.asset(
           'assets/images/cs icon 2.png',
-          height: screenWidth * 0.1,
-          width: screenWidth * 0.1,
+          height: 40,
+          width: 40,
           color: AppColors.textPrimary,
         ),
       ),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(AppConstants.mediumSpacing),
+          padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
               Expanded(
+                // Wrap Image.asset in Expanded to prevent overflow
                 child: Image.asset(
                   'assets/images/onb_1.png',
-                  fit: BoxFit.contain,
+                  fit: BoxFit
+                      .contain, // Changed to contain for proportional scaling
+                  width: double.infinity, // Use full available width
                 ),
               ),
               DefaultTextStyle(
-                style: csTextTheme()
-                    .displayLarge!
-                    .copyWith(fontSize: screenWidth * 0.1),
+                style: csTextTheme().displayLarge!.copyWith(fontSize: 45),
                 child: AnimatedTextKit(
+                  repeatForever: false,
                   isRepeatingAnimation: false,
                   totalRepeatCount: 1,
                   pause: const Duration(seconds: 3),
@@ -69,12 +65,12 @@ class OnboardingScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: AppConstants.largeSpacing),
+              Gap(25),
               ElevatedButton(
                 onPressed: _startApp,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  minimumSize: Size(double.infinity, screenWidth * 0.15),
+                  minimumSize: Size(double.infinity, 75),
                 ),
                 child: Text(
                   'Get Started',

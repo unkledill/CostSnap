@@ -3,6 +3,7 @@ import 'package:cost_snap/theme/theme.dart';
 import 'package:cost_snap/utils/const.dart';
 import 'package:cost_snap/utils/storage.dart';
 import 'package:csv/csv.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
@@ -138,33 +139,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           ListTile(
             title: Text('Default Currency', style: csTextTheme().bodyLarge),
-            trailing: DropdownMenu<String>(
-              initialSelection: AppConstants.selectedCurrency,
-              dropdownMenuEntries: ['NGN', 'USD', 'EUR', 'GBP']
-                  .map((c) => DropdownMenuEntry(value: c, label: c))
+            trailing: DropdownButton<String>(
+              value: AppConstants.selectedCurrency,
+              items: ['NGN', 'USD', 'EUR', 'GBP']
+                  .map((c) => DropdownMenuItem(
+                        value: c,
+                        child: Text(
+                          c,
+                          style: csTextTheme().bodyLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ))
                   .toList(),
-              textStyle: csTextTheme().bodyLarge?.copyWith(
-                    color: AppColors.primary,
+              onChanged: (value) => _saveCurrency(value!),
+              style: csTextTheme().bodyLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
-              menuStyle: MenuStyle(
-                backgroundColor: WidgetStatePropertyAll(AppColors.background),
-                elevation: WidgetStatePropertyAll(8),
+              borderRadius: BorderRadius.circular(8),
+              elevation: 8,
+              underline: Container(
+                height: 1,
+                color: Colors.transparent,
               ),
-              inputDecorationTheme: InputDecorationTheme(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: AppColors.primary),
-                ),
-                filled: true,
-                fillColor: AppColors.background.withOpacity(0.9),
-              ),
-              onSelected: (value) => _saveCurrency(value!),
             ),
           ),
           ListTile(
             title: Text('Export Data', style: csTextTheme().bodyLarge),
-            trailing: const Icon(Icons.file_download),
+            subtitle: Text(
+              'Export your data as CSV',
+              style: csTextTheme()
+                  .bodyMedium
+                  ?.copyWith(color: AppColors.textSecondary),
+            ),
+            trailing: const Icon(CupertinoIcons.share),
             onTap: _exportData,
           ),
           ListTile(
@@ -175,7 +183,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   .bodyMedium
                   ?.copyWith(color: AppColors.textSecondary),
             ),
-            trailing: const Icon(Icons.delete_forever, color: Colors.red),
+            trailing: const Icon(CupertinoIcons.delete, color: Colors.red),
             onTap: _clearData,
           ),
         ],
